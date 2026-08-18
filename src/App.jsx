@@ -1,121 +1,69 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { useGameState } from './game/useGameState'
+import { useKeyboardInput } from './game/useKeyboardInput'
+import GameCanvas from './components/GameCanvas'
+import HitFlash from './components/HitFlash'
+import Popups from './components/Popups'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { state, start, restart, moveLeft, moveRight } = useGameState()
+  useKeyboardInput(moveLeft, moveRight, state.status, start, restart)
+
+  const isDead = state.status === 'dead'
+  const best = Math.max(state.score, Number(localStorage.getItem('voidrunner_best') || 0))
+
+  if (isDead) {
+    localStorage.setItem('voidrunner_best', String(Math.floor(best)))
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className={`app ${isDead ? 'shake' : ''}`} key={state.status === 'running' ? 'run' : 'idle'}>
+      <div className="hud-bar">
+        <div className="hud-title">VOIDRUNNER</div>
+        <div className="hud-card">
+          <div className="hud-label">SCORE</div>
+          <div className="hud-value">{Math.floor(state.score)}</div>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
+        <div className="hud-card">
+          <div className="hud-label">BEST</div>
+          <div className="hud-value">{Math.floor(best)}</div>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+        <div className="hud-card">
+          <div className="hud-label">COINS</div>
+          <div className="hud-value">{state.coinsCollected}</div>
+        </div>
+        {state.multiplier > 1 && (
+          <div className="hud-card hud-combo">
+            <div className="hud-label">COMBO</div>
+            <div className="hud-value">{state.multiplier}x</div>
+          </div>
+        )}
+      </div>
 
-      <div className="ticks"></div>
+      <Popups popups={state.popups} />
+      <div className="game-stage">
+          <GameCanvas playerLane={state.playerLane} obstacles={state.obstacles} coins={state.coins} speed={state.speed || 220} />
+      </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      <HitFlash active={isDead} />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      {state.status === 'ready' && (
+        <div className="overlay">
+          <div className="title">Ready to Run?</div>
+          <button className="start-button" onClick={start}>Start Game</button>
+          <div className="hint">Arrow Keys / A-D to move</div>
+        </div>
+      )}
+
+      {isDead && (
+        <div className="overlay">
+          <div className="death-label">RUN OVER</div>
+          <div className="score-line">Score: {Math.floor(state.score)}</div>
+          <button className="start-button" onClick={restart}>Restart</button>
+          <div className="hint">Space / Enter to restart instantly</div>
+        </div>
+      )}
+    </div>
   )
 }
 
