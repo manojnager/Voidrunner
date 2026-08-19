@@ -83,7 +83,7 @@ The game logic (`src/game/`) is intentionally decoupled from React — `engine.j
 ### Installation
 
 ```bash
-git clone https://github.com/<your-username>/voidrunner.git
+git clone https://github.com/manojnager/Voidrunner.git
 cd voidrunner
 npm install
 ```
