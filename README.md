@@ -4,6 +4,8 @@ A fast-paced, endless bike-dodging browser game. Weave through oncoming traffic,
 
 Built with **React (Vite)** and rendered entirely with SVG and emoji — no images, no external assets, no paid APIs.
 
+**🕹️ [Play it live](https://voidrunner-11qx.onrender.com/)**
+
 ---
 
 ## 🎮 Gameplay
